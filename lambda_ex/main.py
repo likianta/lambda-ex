@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import partial
 from inspect import currentframe
 from textwrap import dedent
@@ -15,7 +17,7 @@ def xlambda(args: str, code_block: str, inherit_context=True, *,
     params = _prepare_params(args, kwargs)
     
     caller_frame = currentframe().f_back
-    context = _get_context(caller_frame, inherit_context)
+    context_g, context_l = _get_context(caller_frame, inherit_context)
     
     code_wrapper = dedent('''
         def {selfunc}({params}):
@@ -25,7 +27,7 @@ def xlambda(args: str, code_block: str, inherit_context=True, *,
                 raise InnerError(e)
         {func_hook} = {selfunc}
     ''').format(
-        file=context['__file__'],
+        file=context_g['__file__'],
         params=params,
         source_code=indent(dedent(code_block), ' ' * 8),
         func_hook=hook_key,
@@ -33,9 +35,9 @@ def xlambda(args: str, code_block: str, inherit_context=True, *,
     )
     # print(code_wrapper)
     
-    exec(code_wrapper, context)
+    exec(code_wrapper, context_g, context_l)
     # print(context[hook_key])
-    return context[hook_key]
+    return context_l[hook_key]
 
 
 def _prepare_params(args: str, kwargs: dict | None) -> str:
@@ -46,20 +48,17 @@ def _prepare_params(args: str, kwargs: dict | None) -> str:
         return out.strip(', ')
 
 
-def _get_context(frame, full: bool) -> dict:
+def _get_context(frame, full: bool) -> tuple[dict, dict]:
     # print(frame.f_globals['__file__'])
-    out = {}
-    if full:
-        out.update(frame.f_globals)
-        out.update(frame.f_locals)
-    out.update({
+    globals_ = frame.f_locals if full else {}
+    locals_ = {
         'InnerError': partial(
             InnerError,
             file_source=frame.f_globals['__file__'],
             line_offset=frame.f_lineno,
         )
-    })
-    return out
+    }
+    return globals_, locals_
 
 
 class InnerError(Exception):
