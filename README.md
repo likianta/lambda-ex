@@ -8,6 +8,8 @@ python lambda expression in multiple lines.
 pip install git+https://github.com/likianta/lambda-ex
 ```
 
+*note: it requires python 3.8+.*
+
 ## usage
 
 ```python
@@ -115,7 +117,7 @@ add = xlambda('', """
 add()  # -> 3
 ```
 
-and modify local values:
+and modify "global" values:
 
 ```python
 from lambda_ex import xlambda
@@ -134,23 +136,7 @@ print(add())  # -> 6
 print(a, b, c)  # -> 1 2 3
 ```
 
-it equals to:
-
-```python
-a = 1
-b = 2
-c = 0
-
-def __selfunc__():
-    global c
-    c = 3
-    return a + b + c
-
-add = __selfunc__
-
-print(add())  # -> 6
-print(a, b, c)  # -> 1 2 3
-```
+warning: there is some limitation in this case, see [here](#20220810124919).
 
 ## tips & tricks
 
@@ -167,8 +153,31 @@ print(a, b, c)  # -> 1 2 3
 
 ## cautions & limitations
 
--   use '\\n' instead of '\n' in your lambda expression. or you may use the
+-   use `\\n` instead of `\n` in your lambda expression. or you may use the
     r-string.
 
--   you cannot use `nonlocal` in xlambda. the `locals()` inside `__selfunc__`
-    is an empty dict.
+<a id="20220810124919"></a>
+
+-   you can only use `global` when xlambda in top module, otherwise it won't
+    affect outside variables:
+
+    ```python
+    from lambda_ex import xlambda
+
+    def foo():
+        a = 1
+        b = 2
+        c = 0
+
+        add = xlambda('', """
+            global c  # no effect
+            # btw do never use `nonlocals ...` in xlambda, it will raise an
+            #   error at once.
+            c = 3
+            return a + b + c
+        """)
+
+        print(add())  # -> 6
+        print(a, b, c)  # -> 1 2 0
+        #                        ^ no change
+    ```
