@@ -54,6 +54,7 @@ def _get_context(frame, full: bool) -> dict:
     # print(frame.f_globals['__file__'])
     context = frame.f_locals if full else {}
     context.update({
+        '__file__': frame.f_globals['__file__'],
         f'InnerError{_uid}': partial(
             InnerError,
             file_source=frame.f_globals['__file__'],
@@ -73,11 +74,12 @@ class InnerError(Exception):
             │ There was an error happened in xlambda function.                │
             │ Here is the useful information for your diagnosis:              │
             │    Source: "{file}:{line}"
-            │    Error: {error}
+            │    {error_type}: {error}
             ╰─────────────────────────────────────────────────────────────────╯
         ''').rstrip().format(
             file=file_source,
             line=(raw_error.__traceback__.tb_lineno - 3) + line_offset - 1,
+            error_type=type(raw_error).__name__,
             error=str(raw_error),
         )
     

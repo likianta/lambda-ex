@@ -1,14 +1,7 @@
 from lambda_ex import xlambda
 
-a = 1
-b = 2
-c = 0
-
-add = xlambda('', """
-    global c
-    c = 3
-    return a + b + c
+add = xlambda('a, b', """
+    return a + b
 """)
 
-print(add())  # -> 6
-print(a, b, c)  # -> 1 2 3
+print(add(1, 2))  # -> 3
