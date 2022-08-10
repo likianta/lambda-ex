@@ -37,7 +37,7 @@ print(add(a=1, b=2, c=3))  # -> 6
 ```
 
 if you are passing a complex object, for example a long list, you can also use
-"post" kwargs as `xlambda`s third argument:
+"post" kwargs like below:
 
 ```python
 from lambda_ex import xlambda
@@ -151,10 +151,30 @@ warning: there is some limitation in this case, see [here](#20220810124919).
     """)
     ```
 
+    ![](.assets/20220810125842.png)
+
+-   by default lambda-ex inherits caller context, if you want to forbid this
+    (it would be little faster then), set `inherit_context` to False:
+
+    ```python
+    from lambda_ex import xlambda
+    hello_world = xlambda('', """
+        print('hello world')
+    """, inherit_context=False)
+    ```
+
 ## cautions & limitations
 
 -   use `\\n` instead of `\n` in your lambda expression. or you may use the
-    r-string.
+    r-string (example below).
+
+    ```python
+    from lambda_ex import xlambda
+    foo = xlambda('', r"""
+        print('one\ntwo\nthree')
+    """)
+    foo()
+    ```
 
 <a id="20220810124919"></a>
 
@@ -180,4 +200,6 @@ warning: there is some limitation in this case, see [here](#20220810124919).
         print(add())  # -> 6
         print(a, b, c)  # -> 1 2 0
         #                        ^ no change
+
+    foo()
     ```
