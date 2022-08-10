@@ -17,27 +17,28 @@ def xlambda(args: str, code_block: str, inherit_context=True, *,
     params = _prepare_params(args, kwargs)
     
     caller_frame = currentframe().f_back
-    context_g, context_l = _get_context(caller_frame, inherit_context)
+    context = _get_context(caller_frame, inherit_context)
     
     code_wrapper = dedent('''
         def {selfunc}({params}):
             try:
                 {source_code}
             except Exception as e:
-                raise InnerError(e)
+                raise InnerError{uid}(e)
         {func_hook} = {selfunc}
     ''').format(
-        file=context_g['__file__'],
+        file=context['__file__'],
         params=params,
         source_code=indent(dedent(code_block), ' ' * 8),
         func_hook=hook_key,
         selfunc=selfunc_name,
+        uid=_uid,
     )
     # print(code_wrapper)
     
-    exec(code_wrapper, context_g, context_l)
+    exec(code_wrapper, context)
     # print(context[hook_key])
-    return context_l[hook_key]
+    return context[hook_key]
 
 
 def _prepare_params(args: str, kwargs: dict | None) -> str:
@@ -48,17 +49,18 @@ def _prepare_params(args: str, kwargs: dict | None) -> str:
         return out.strip(', ')
 
 
-def _get_context(frame, full: bool) -> tuple[dict, dict]:
+def _get_context(frame, full: bool) -> dict:
+    global _uid
     # print(frame.f_globals['__file__'])
-    globals_ = frame.f_locals if full else {}
-    locals_ = {
-        'InnerError': partial(
+    context = frame.f_locals if full else {}
+    context.update({
+        f'InnerError{_uid}': partial(
             InnerError,
             file_source=frame.f_globals['__file__'],
             line_offset=frame.f_lineno,
         )
-    }
-    return globals_, locals_
+    })
+    return context
 
 
 class InnerError(Exception):
