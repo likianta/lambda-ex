@@ -54,7 +54,7 @@ def _get_context(frame, full: bool) -> dict:
     # print(frame.f_globals['__file__'])
     context = frame.f_locals if full else {}
     context.update({
-        '__file__': frame.f_globals['__file__'],
+        '__file__'         : frame.f_globals['__file__'],
         f'InnerError{_uid}': partial(
             InnerError,
             file_source=frame.f_globals['__file__'],
@@ -69,19 +69,34 @@ class InnerError(Exception):
     def __init__(self, raw_error: Exception,
                  file_source: str, line_offset: int):
         # note: the border line is from `lib:rich.box.ROUNDED`.
-        self._error = dedent('''
-            ╭─────────────────────────────────────────────────────────────────╮
-            │ There was an error happened in xlambda function.                │
-            │ Here is the useful information for your diagnosis:              │
-            │    Source: "{file}:{line}"
-            │    {error_type}: {error}
-            ╰─────────────────────────────────────────────────────────────────╯
-        ''').rstrip().format(
+        text = dedent('''
+            There was an error happened in xlambda function.
+            Here is the useful information for your diagnosis:
+               Source: "{file}:{line}"
+               {error_type}: {error}
+        ''').strip().format(
             file=file_source,
             line=(raw_error.__traceback__.tb_lineno - 3) + line_offset - 1,
             error_type=type(raw_error).__name__,
             error=str(raw_error),
         )
+        
+        lines = text.splitlines()
+        width, height = max(map(len, lines)) + 4, len(lines) + 2
+        #   ... + 4: left border, space, space, right border.
+        #   ... + 2: top border, bottom border.
+        
+        new_lines = []
+        for i in range(height):
+            if i == 0:
+                new_lines.append('╭' + '─' * (width - 2) + '╮')
+            elif i == height - 1:
+                new_lines.append('╰' + '─' * (width - 2) + '╯')
+            else:
+                content = lines[i - 1]
+                spaces = (' ', ' ' * (width - 2 - 1 - len(content)))
+                new_lines.append('│' + spaces[0] + content + spaces[1] + '│')
+        self._error = '\n' + '\n'.join(new_lines)
     
     def __str__(self):
         return self._error
