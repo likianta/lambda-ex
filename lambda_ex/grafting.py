@@ -4,8 +4,14 @@ from typing import Callable
 _grafted = set()
 
 
-def grafting(trigger: Callable, *args, singleton=True, **kwargs) -> Callable:
+class TARGET:
+    pass
+
+
+def grafting(trigger: Callable, *args, one_off=True, **kwargs) -> Callable:
     """
+    a handy implementation for "one-off" used decorator.
+
     classic usage:
         from lambda_ex import grafting
         @grafting(button.clicked.connect)
@@ -14,12 +20,11 @@ def grafting(trigger: Callable, *args, singleton=True, **kwargs) -> Callable:
     """
     
     def decorator(func):
-        if singleton:
-            if (uid := (id(trigger), id(func))) not in _grafted:
-                trigger(partial(func, *args, **kwargs))
-                _grafted.add(uid)
+        if one_off and (uid := (id(trigger), id(func))) in _grafted:
+            return
         else:
-            trigger(partial(func, *args, **kwargs))
+            _grafted.add(uid)
+        trigger(partial(func, *args, **kwargs))
         return func
     
     return decorator
