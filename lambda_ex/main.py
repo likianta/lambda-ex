@@ -38,14 +38,18 @@ def xlambda(args: str, code_block: str, inherit_context=True, *,
     
     exec(code_wrapper, context)
     # print(context[hook_key])
-    return context[hook_key]
+    
+    if kwargs:
+        return partial(context[hook_key], **kwargs)
+    else:
+        return context[hook_key]
 
 
 def _prepare_params(args: str, kwargs: dict | None) -> str:
     if kwargs is None:
         return args
     else:
-        out = args + ', ' + ', '.join(f'{k}={v}' for k, v in kwargs.items())
+        out = args + ', ' + ', '.join(kwargs.keys())
         return out.strip(', ')
 
 
