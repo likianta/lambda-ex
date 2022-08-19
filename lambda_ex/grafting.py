@@ -4,7 +4,7 @@ from typing import Callable
 _grafted = set()
 
 
-class TARGET:
+class GRAFTEE:
     pass
 
 
@@ -18,13 +18,22 @@ def grafting(trigger: Callable, *args, one_off=True, **kwargs) -> Callable:
         def on_clicked():
             print('clicked')
     """
+    _is_func_in_params = GRAFTEE in args or GRAFTEE in tuple(kwargs.values())
     
     def decorator(func):
-        if one_off and (uid := (id(trigger), id(func))) in _grafted:
-            return
+        uid = (id(trigger), id(func))
+        if one_off and uid in _grafted:
+            return func
         else:
             _grafted.add(uid)
-        trigger(partial(func, *args, **kwargs))
+        if _is_func_in_params:
+            new_args = (func if x is GRAFTEE else x
+                        for x in args)
+            new_kwargs = {k: (func if v is GRAFTEE else v)
+                          for k, v in kwargs.items()}
+            trigger(*new_args, **new_kwargs)
+        else:
+            trigger(partial(func, *args, **kwargs))
         return func
     
     return decorator
