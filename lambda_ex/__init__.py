@@ -1,5 +1,6 @@
+from .grafting import GRAFTEE
 from .grafting import grafting
+from .lambdex import xlambda
 from .later import later
-from .main import xlambda
 
 __version__ = '1.1.0'
