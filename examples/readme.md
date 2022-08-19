@@ -1,6 +1,7 @@
 suggested reading order:
 
 1. add_abc.py
-2. fibonacci.py
-3. raise_an_error.py
-4. grafting.py
+2. complex_kwargs.py
+3. fibonacci.py
+4. raise_an_error.py
+5. grafting.py
