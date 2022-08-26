@@ -1,4 +1,5 @@
-from functools import partial
+from contextlib import contextmanager
+from functools import partial as _partial
 from typing import Callable
 
 _grafted = set()
@@ -33,7 +34,23 @@ def grafting(trigger: Callable, *args, one_off=True, **kwargs) -> Callable:
                           for k, v in kwargs.items()}
             trigger(*new_args, **new_kwargs)
         else:
-            trigger(partial(func, *args, **kwargs))
+            trigger(_partial(func, *args, **kwargs))
         return func
     
     return decorator
+
+
+@contextmanager
+def partial(target, *args, **kwargs):
+    """
+    example:
+        with partial(page.add) as hook:
+            button = Button('click me')
+            button.set_style(...)
+            hook(button)
+    """
+    yield _partial(target, *args, **kwargs)
+    
+    
+# def uphold(obj: Any):
+#     pass
