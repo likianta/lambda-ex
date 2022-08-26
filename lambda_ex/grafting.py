@@ -41,6 +41,11 @@ def grafting(trigger: Callable, *args, one_off=True, **kwargs) -> Callable:
 
 
 @contextmanager
+def hold(target):
+    yield target
+
+
+@contextmanager
 def partial(target, *args, **kwargs):
     """
     example:
