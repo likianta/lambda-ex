@@ -8,6 +8,14 @@ from textwrap import indent
 _uid = 0  # simple incremental id generator.
 
 
+def run_once(*args, **kwargs):
+    def decorator(func):
+        # warning: this is not avaiable for recursive call.
+        return func(*args, **kwargs)
+    
+    return decorator
+
+
 def xlambda(args: str, code_block: str, inherit_context=True, *,
             kwargs: dict = None, selfunc_name='__selfunc__'):
     global _uid

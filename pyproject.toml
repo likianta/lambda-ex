@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lambda-ex"
-version = "1.2.0b1"
+version = "1.2.0b5"
 homepage = "https://github.com/likianta/lambda-ex"
 description = "Python lambda expression in multiple lines."
 readme = "README.md"
